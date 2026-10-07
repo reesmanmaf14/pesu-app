@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Aac;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TileAudioRequest;
 use App\Models\Tile;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -19,24 +20,17 @@ class TileAudioController extends Controller
     ];
 
     /** Plays a word's recorded Tamil voice: a built-in word's for any approved user, a custom word's for its owner. */
-    public function show(Tile $tile): BinaryFileResponse|RedirectResponse
+    public function show(Tile $tile): BinaryFileResponse
     {
         Gate::authorize('listen', $tile);
 
         $disk = Storage::disk(Tile::audioDisk());
         abort_unless($tile->ta_audio_path && $disk->exists($tile->ta_audio_path), 404);
 
-        // A bucket (Laravel Cloud) has no local path: after the check above, send the browser to a
-        // short-lived signed link. The bucket supports byte ranges, so Safari can play it too.
-        if (config('filesystems.disks.'.Tile::audioDisk().'.driver') !== 'local') {
-            return redirect()->away($disk->temporaryUrl($tile->ta_audio_path, now()->addMinutes(5)))
-                ->header('Cache-Control', 'private, no-store');
-        }
-
         // A file response (not a stream) supports byte ranges, which Safari needs to play audio.
         $type = self::CONTENT_TYPES[pathinfo($tile->ta_audio_path, PATHINFO_EXTENSION)] ?? 'application/octet-stream';
 
-        return response()->file($disk->path($tile->ta_audio_path), [
+        return response()->file($this->localCopy($disk, $tile->ta_audio_path), [
             'Content-Type' => $type,
             'Cache-Control' => 'private, max-age=31536000',
             'X-Content-Type-Options' => 'nosniff',
@@ -79,6 +73,28 @@ class TileAudioController extends Controller
         }
 
         return response()->json(['tile' => $tile->fresh()->toAac()]);
+    }
+
+    /**
+     * A path on this server for the recording. On the local disk that is the file itself; on a bucket the
+     * file is downloaded once into the framework cache. Recording names are random and never reused (a new
+     * recording gets a new name), so a cached copy never goes stale.
+     */
+    private function localCopy(Filesystem $disk, string $path): string
+    {
+        if (config('filesystems.disks.'.Tile::audioDisk().'.driver') === 'local') {
+            return $disk->path($path);
+        }
+
+        $copy = storage_path('framework/cache/aac-audio/'.sha1($path).'.'.pathinfo($path, PATHINFO_EXTENSION));
+        if (! is_file($copy)) {
+            File::ensureDirectoryExists(dirname($copy));
+            $contents = $disk->get($path);
+            abort_if($contents === null, 404);
+            File::put($copy, $contents);
+        }
+
+        return $copy;
     }
 
     /** Writes only ta_audio_path (and updated_at, which changes the playback URL so browsers fetch the new file). */

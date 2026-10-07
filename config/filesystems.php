@@ -60,6 +60,38 @@ return [
             'report' => false,
         ],
 
+        // Pesu's buckets on any S3-compatible storage (Supabase Storage on Render). Select them with
+        // AAC_AUDIO_DISK=aac-recordings and AAC_PHOTO_DISK=aac-photos (config/pesu.php). Unused locally.
+        'aac-recordings' => [
+            'driver' => 's3',
+            'key' => env('AAC_S3_KEY'),
+            'secret' => env('AAC_S3_SECRET'),
+            'region' => env('AAC_S3_REGION', 'us-east-1'),
+            'bucket' => env('AAC_RECORDINGS_BUCKET', 'aac-recordings'), // a PRIVATE bucket
+            'endpoint' => env('AAC_S3_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            // Newer AWS SDKs add checksums that some S3-compatible services reject.
+            'request_checksum_calculation' => 'when_required',
+            'response_checksum_validation' => 'when_required',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'aac-photos' => [
+            'driver' => 's3',
+            'key' => env('AAC_S3_KEY'),
+            'secret' => env('AAC_S3_SECRET'),
+            'region' => env('AAC_S3_REGION', 'us-east-1'),
+            'bucket' => env('AAC_PHOTOS_BUCKET', 'aac-photos'), // a PUBLIC bucket
+            'url' => env('AAC_PHOTOS_URL'), // the bucket's public base URL
+            'endpoint' => env('AAC_S3_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'request_checksum_calculation' => 'when_required',
+            'response_checksum_validation' => 'when_required',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

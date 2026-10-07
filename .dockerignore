@@ -1,0 +1,26 @@
+# Never put secrets, local data or build output into the image.
+.git
+.env
+.env.*
+!.env.example
+database/*.sqlite*
+storage/app/private/*
+storage/app/public/*
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/*.key
+
+# Rebuilt inside the image
+node_modules
+vendor
+public/build
+public/hot
+public/storage
+
+# Not needed to run the app
+tests
+.phpunit.result.cache
+.vscode
+.idea

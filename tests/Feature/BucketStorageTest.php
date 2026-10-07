@@ -8,6 +8,7 @@ use App\Models\User;
 use Database\Seeders\AacVocabularySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -34,9 +35,13 @@ class BucketStorageTest extends TestCase
         Storage::fake('aac-photos');
         Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('aac-recordings')->buildTemporaryUrlsUsing(
-            fn (string $path, $expiration) => "https://bucket.example/{$path}?expires={$expiration->timestamp}"
-        );
+    }
+
+    protected function tearDown(): void
+    {
+        // Copies the audio controller downloaded from the (fake) bucket.
+        File::deleteDirectory(storage_path('framework/cache/aac-audio'));
+        parent::tearDown();
     }
 
     private function voice(): UploadedFile
@@ -56,17 +61,27 @@ class BucketStorageTest extends TestCase
         $this->assertEmpty(Storage::disk('local')->allFiles());
     }
 
-    public function test_playback_checks_permission_then_redirects_to_a_short_lived_link(): void
+    public function test_playback_checks_permission_then_serves_the_bucket_file(): void
     {
         $therapist = User::factory()->therapist()->create();
         $tile = Tile::whereNull('user_id')->first();
         $this->actingAs($therapist)->post("/aac/tiles/{$tile->id}/audio", ['ta_audio' => $this->voice()], ['Accept' => 'application/json'])->assertOk();
         $path = $tile->fresh()->ta_audio_path;
 
+        // Fake uploads report a size but hold no bytes, so give the bucket file real content (1 KB).
+        $bytes = implode('', array_map(fn ($i) => chr($i % 256), range(0, 1023)));
+        Storage::disk('aac-recordings')->put($path, $bytes);
+
         $response = $this->actingAs(User::factory()->create())->get("/aac/tiles/{$tile->id}/audio");
-        $response->assertRedirect();
-        $this->assertStringStartsWith("https://bucket.example/{$path}?expires=", $response->headers->get('Location'));
-        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+        $response->assertOk()->assertHeader('Content-Type', 'audio/webm');
+        $this->assertSame($bytes, file_get_contents($response->baseResponse->getFile()->getPathname()));
+
+        // Byte ranges still work (Safari needs them): exactly bytes 0–9 of the real content.
+        $range = $this->actingAs(User::factory()->create())->get("/aac/tiles/{$tile->id}/audio", ['Range' => 'bytes=0-9']);
+        $range->assertStatus(206)->assertHeader('Content-Range', 'bytes 0-9/1024');
+        ob_start();
+        $range->baseResponse->sendContent();
+        $this->assertSame(substr($bytes, 0, 10), ob_get_clean());
 
         // Still refused before any link is made.
         $this->actingAs(User::factory()->pending()->create())->get("/aac/tiles/{$tile->id}/audio")->assertRedirect('/account/status');
@@ -83,7 +98,7 @@ class BucketStorageTest extends TestCase
 
         Storage::disk('aac-recordings')->assertExists(Tile::find($id)->ta_audio_path);
         $this->actingAs(User::factory()->create())->get("/aac/tiles/{$id}/audio")->assertForbidden();
-        $this->actingAs($parent)->get("/aac/tiles/{$id}/audio")->assertRedirect();
+        $this->actingAs($parent)->get("/aac/tiles/{$id}/audio")->assertOk();
     }
 
     public function test_photos_are_stored_on_the_photo_bucket(): void

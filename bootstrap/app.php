@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'approved' => \App\Http\Middleware\EnsureApproved::class,
         ]);
+
+        // Behind a hosting proxy (Render), trust it so links and cookies use https. Off unless set.
+        if ($proxies = env('TRUSTED_PROXIES')) {
+            $middleware->trustProxies(at: $proxies === '*' ? '*' : explode(',', $proxies));
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

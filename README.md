@@ -117,6 +117,42 @@ Built-in words are matched by `tiles.seed_key` ("category-slug|English|Tamil"), 
 updates them in place and keeps their ids and recordings. It stops without changing anything if a word
 that has a recording was taken out of the list.
 
+## Deploying for free (Render + Supabase, no card)
+
+The container's disk is reset on every deploy, so the database and files live in Supabase:
+one free Supabase project gives Postgres and S3-compatible storage. Render runs the `Dockerfile`.
+`docker/start.sh` caches config, runs migrations and loads the built-in words into an empty database
+(`php artisan pesu:vocabulary --if-empty`; it never runs `DatabaseSeeder`, which creates a test user).
+
+1. **Supabase:** create a project. Storage → create bucket `aac-recordings` (**private**) and
+   `aac-photos` (**public**). Storage → Settings → S3 access keys → create a key.
+   Database → Connect → copy the **Session pooler** connection string.
+2. **Render:** New → Web Service → this GitHub repo → runtime Docker → plan Free.
+   Environment variables:
+
+   | Variable | Value |
+   |---|---|
+   | `APP_KEY` | output of `php artisan key:generate --show` (run locally) |
+   | `APP_ENV` / `APP_DEBUG` | `production` / `false` |
+   | `APP_URL` | `https://<service>.onrender.com` |
+   | `TRUSTED_PROXIES` | `*` |
+   | `LOG_CHANNEL` | `stderr` |
+   | `DB_CONNECTION` / `DB_URL` | `pgsql` / the session pooler string with `?sslmode=require` |
+   | `SESSION_DRIVER` / `CACHE_STORE` | `database` / `database` |
+   | `SESSION_SECURE_COOKIE` | `true` |
+   | `QUEUE_CONNECTION` / `MAIL_MAILER` | `sync` / `log` |
+   | `AAC_AUDIO_DISK` / `AAC_PHOTO_DISK` | `aac-recordings` / `aac-photos` |
+   | `AAC_S3_ENDPOINT` | `https://<project-ref>.supabase.co/storage/v1/s3` |
+   | `AAC_S3_REGION` | the project's region, e.g. `ap-south-1` |
+   | `AAC_S3_KEY` / `AAC_S3_SECRET` | the S3 access key pair |
+   | `AAC_PHOTOS_URL` | `https://<project-ref>.supabase.co/storage/v1/object/public/aac-photos` |
+
+3. To make the therapist: she registers, then in Supabase → SQL editor run
+   `update users set role = 'therapist', status = 'approved', reviewed_at = now() where email = '…';`
+
+Free plans: Render sleeps after 15 minutes idle (about a minute to wake); a Supabase project pauses
+after about a week without use (resume it from the dashboard). Keep backups.
+
 ## Privacy
 
 The usage history records the sentences a person speaks, which is sensitive. It can be turned off
