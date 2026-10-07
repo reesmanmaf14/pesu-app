@@ -1,47 +1,61 @@
-# Pesu (பேசு) – English & Tamil AAC board for Laravel
+# Pesu (பேசு) – a Tamil & English talking board
 
-A picture-based talking board for people with speech difficulties. Users tap pictures to build
-a sentence and the browser speaks it in English or Tamil. Each user can add their own words and
-photos, save phrases, and (optionally) keep a history that parents and therapists can review.
+*Pesu* means "speak" in Tamil. It is a picture-based talking board (AAC: augmentative and alternative
+communication) for children who find speech difficult. A child taps pictures to build a sentence, and
+Pesu says it aloud in English or Tamil.
 
-Built for Laravel 11/12 with Laravel Breeze (Blade) for login. No extra Composer packages.
+**▶️ [Watch the 2-minute demo](https://youtu.be/VIDEO-ID)** · Built by Reesman as a skill-development project,
+with a speech therapist's input.
 
-## Setup
+| Talking board (English) | Talking board (Tamil) |
+|---|---|
+| ![Pesu board in English](docs/screenshots/board-english.png) | ![Pesu board in Tamil](docs/screenshots/board-tamil.png) |
+| **Therapist: Tamil recordings** | **Therapist: approving parents** |
+| ![Recording Tamil pronunciations](docs/screenshots/recordings.png) | ![Approving parent accounts](docs/screenshots/approvals.png) |
+
+### Why Pesu
+
+Most AAC apps are English-first. Tamil is verb-final and adds case endings, so joining words in the order
+they are tapped produces broken sentences, and many phones and tablets have no Tamil voice at all.
+Pesu builds grammatical Tamil sentences and lets a therapist record how words should sound.
+
+### Features
+
+- **Picture board with sentence building.** Sentence starters such as "I want…" fill in the next picture
+  with the right word form: *எனக்கு பூங்காவுக்கு போக வேண்டும்* ("I want to go to the park").
+- **English and Tamil speech.** In Tamil, built-in words use the device's Tamil voice, then the therapist's
+  recording if there is no voice, then a clear message instead of silence.
+- **Therapist role.** The therapist approves new parent accounts and records Tamil pronunciations of the
+  built-in words, which every approved family hears.
+- **Families' own words.** Parents add their own words, photos and recordings, private to their account.
+- **Everyday tools.** Quick Talk, a keyboard, saved phrases, and an optional activity history.
+- **Accessible by design.** 48px touch targets, keyboard and screen-reader support, dark mode,
+  reduced-motion support, and layouts for phones and tablets.
+
+### Built with
+
+Laravel 12 (PHP 8.2+) · Blade · Laravel Breeze · vanilla JavaScript (Web Speech API, MediaRecorder) ·
+Tailwind CSS 3 with Pesu's own design tokens · Vite · SQLite locally, Postgres and S3-compatible storage
+when deployed · PHPUnit feature tests for accounts, permissions, recordings and the vocabulary.
+
+### Try it locally
 
 ```bash
-composer create-project laravel/laravel pesu
-cd pesu
-composer require laravel/breeze --dev
-php artisan breeze:install blade
-```
-
-Copy the files from this folder into the project, keeping the same paths. These replace Breeze/Laravel
-files: `routes/web.php`, `app/Models/User.php`, `database/seeders/DatabaseSeeder.php`.
-
-Add the board's two entry points to the `input` array in your existing `vite.config.js`
-(keep whatever else is already there):
-
-```js
-input: [
-    'resources/css/app.css',
-    'resources/js/app.js',
-    'resources/css/aac.css',      // add
-    'resources/js/aac/app.js',    // add
-],
-```
-
-Then:
-
-```bash
-php artisan migrate --seed      # creates tables + built-in vocabulary + test@example.com / password
+git clone https://github.com/reesmanmaf14/pesu-app.git
+cd pesu-app
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed      # SQLite database, built-in words and a demo parent account
 php artisan storage:link        # so uploaded photos are viewable
-npm install && npm run dev
+npm install && npm run build
 php artisan serve
 ```
 
-Open http://localhost:8000, log in as `test@example.com` / `password`, and you'll land on the board.
-Set `APP_URL` in `.env` to the address you use so photo URLs are correct.
-
+Open http://localhost:8000 and log in as the demo parent `test@example.com` / `password`.
+To try the therapist side, register a new account, then run
+`php artisan pesu:grant-therapist your@email` and confirm.
+Voice recording needs a microphone and works on `localhost` or https.
 Run the tests with `php artisan test`.
 
 ## How it fits together
