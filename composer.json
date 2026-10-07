@@ -50,6 +50,10 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "vercel": [
+            "@php artisan migrate --force",
+            "@php artisan pesu:vocabulary --if-empty"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

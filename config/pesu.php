@@ -12,4 +12,8 @@ return [
 
     'photo_disk' => env('AAC_PHOTO_DISK', 'public'),
 
+    // Where recordings from a bucket are cached on the server before being played. It must be writable;
+    // on Vercel only /tmp is, so set AAC_AUDIO_CACHE_PATH=/tmp/aac-audio there.
+    'audio_cache_path' => env('AAC_AUDIO_CACHE_PATH', storage_path('framework/cache/aac-audio')),
+
 ];

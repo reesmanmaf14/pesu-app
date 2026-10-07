@@ -87,6 +87,30 @@ class BucketStorageTest extends TestCase
         $this->actingAs(User::factory()->pending()->create())->get("/aac/tiles/{$tile->id}/audio")->assertRedirect('/account/status');
     }
 
+    public function test_the_recording_cache_folder_can_be_moved_for_read_only_hosts(): void
+    {
+        // On Vercel only /tmp is writable: AAC_AUDIO_CACHE_PATH=/tmp/aac-audio.
+        $cache = sys_get_temp_dir().DIRECTORY_SEPARATOR.'pesu-audio-cache-test-'.uniqid();
+        config(['pesu.audio_cache_path' => $cache]);
+
+        $therapist = User::factory()->therapist()->create();
+        $tile = Tile::whereNull('user_id')->first();
+        $this->actingAs($therapist)->post("/aac/tiles/{$tile->id}/audio", ['ta_audio' => $this->voice()], ['Accept' => 'application/json'])->assertOk();
+        $path = $tile->fresh()->ta_audio_path;
+        Storage::disk('aac-recordings')->put($path, 'real bytes');
+
+        try {
+            $response = $this->actingAs(User::factory()->create())->get("/aac/tiles/{$tile->id}/audio")->assertOk();
+
+            $served = $response->baseResponse->getFile()->getPathname();
+            $this->assertSame(realpath($cache), realpath(dirname($served)));
+            $this->assertSame('real bytes', file_get_contents($served));
+            $this->assertDirectoryDoesNotExist(storage_path('framework/cache/aac-audio'));
+        } finally {
+            File::deleteDirectory($cache);
+        }
+    }
+
     public function test_a_parents_own_recording_stays_private_on_the_bucket(): void
     {
         $parent = User::factory()->create();

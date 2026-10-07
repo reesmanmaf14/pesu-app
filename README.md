@@ -117,24 +117,28 @@ Built-in words are matched by `tiles.seed_key` ("category-slug|English|Tamil"), 
 updates them in place and keeps their ids and recordings. It stops without changing anything if a word
 that has a recording was taken out of the list.
 
-## Deploying for free (Render + Supabase, no card)
+## Deploying for free (Vercel + Supabase, no card)
 
-The container's disk is reset on every deploy, so the database and files live in Supabase:
-one free Supabase project gives Postgres and S3-compatible storage. Render runs the `Dockerfile`.
-`docker/start.sh` caches config, runs migrations and loads the built-in words into an empty database
-(`php artisan pesu:vocabulary --if-empty`; it never runs `DatabaseSeeder`, which creates a test user).
+Vercel keeps no files between requests, so the database and files live in Supabase: one free
+Supabase project gives Postgres and S3-compatible storage. Vercel runs Laravel through the community
+PHP runtime (`vercel.json` → `api/index.php` → `public/index.php`) and serves `public/build` as static
+files. During each Vercel build the Composer `vercel` script runs `php artisan migrate --force` and
+`php artisan pesu:vocabulary --if-empty` (built-in words into an empty database only; it never runs
+`DatabaseSeeder`, which creates a test user). If a migration fails, the build fails and the previous
+version stays live. (The `Dockerfile` and `docker/` are an alternative for container hosts such as Render.)
 
-1. **Supabase:** create a project. Storage → create bucket `aac-recordings` (**private**) and
-   `aac-photos` (**public**). Storage → Settings → S3 access keys → create a key.
-   Database → Connect → copy the **Session pooler** connection string.
-2. **Render:** New → Web Service → this GitHub repo → runtime Docker → plan Free.
-   Environment variables:
+1. **Supabase:** create a project. Turn off the Data API (Pesu doesn't use it). Storage → create bucket
+   `aac-recordings` (**private**) and `aac-photos` (**public**). Storage → Settings → S3 access keys →
+   create a key. Database → Connect → copy the **Session pooler** connection string.
+2. **Vercel:** Add New → Project → import this GitHub repo (Framework preset: Other; `vercel.json`
+   sets the build). Add these environment variables for **Production only**, so preview builds of other
+   branches never migrate the live database:
 
    | Variable | Value |
    |---|---|
    | `APP_KEY` | output of `php artisan key:generate --show` (run locally) |
    | `APP_ENV` / `APP_DEBUG` | `production` / `false` |
-   | `APP_URL` | `https://<service>.onrender.com` |
+   | `APP_URL` | `https://<project>.vercel.app` |
    | `TRUSTED_PROXIES` | `*` |
    | `LOG_CHANNEL` | `stderr` |
    | `DB_CONNECTION` / `DB_URL` | `pgsql` / the session pooler string with `?sslmode=require` |
@@ -146,12 +150,17 @@ one free Supabase project gives Postgres and S3-compatible storage. Render runs 
    | `AAC_S3_REGION` | the project's region, e.g. `ap-south-1` |
    | `AAC_S3_KEY` / `AAC_S3_SECRET` | the S3 access key pair |
    | `AAC_PHOTOS_URL` | `https://<project-ref>.supabase.co/storage/v1/object/public/aac-photos` |
+   | `AAC_AUDIO_CACHE_PATH` | `/tmp/aac-audio` |
+   | `APP_CONFIG_CACHE` / `APP_EVENTS_CACHE` | `/tmp/config.php` / `/tmp/events.php` |
+   | `APP_PACKAGES_CACHE` / `APP_ROUTES_CACHE` | `/tmp/packages.php` / `/tmp/routes.php` |
+   | `APP_SERVICES_CACHE` / `VIEW_COMPILED_PATH` | `/tmp/services.php` / `/tmp` |
 
 3. To make the therapist: she registers, then in Supabase → SQL editor run
    `update users set role = 'therapist', status = 'approved', reviewed_at = now() where email = '…';`
 
-Free plans: Render sleeps after 15 minutes idle (about a minute to wake); a Supabase project pauses
-after about a week without use (resume it from the dashboard). Keep backups.
+Free plans: Vercel's Hobby plan is for non-commercial use and the first request after a quiet period is
+slower; a Supabase project pauses after about a week without use (resume it from the dashboard). PHP on
+Vercel depends on the community runtime. Keep backups.
 
 ## Privacy
 

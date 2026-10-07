@@ -1,0 +1,22 @@
+# Not needed on Vercel (Composer and npm reinstall dependencies there).
+tests
+docker
+Dockerfile
+.dockerignore
+node_modules
+vendor
+public/hot
+public/storage
+.phpunit.result.cache
+
+# Never deploy local data or secrets.
+.env
+.env.*
+!.env.example
+database/*.sqlite*
+storage/app/private/*
+storage/app/public/*
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*

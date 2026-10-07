@@ -77,7 +77,7 @@ class TileAudioController extends Controller
 
     /**
      * A path on this server for the recording. On the local disk that is the file itself; on a bucket the
-     * file is downloaded once into the framework cache. Recording names are random and never reused (a new
+     * file is downloaded once into pesu.audio_cache_path (/tmp on Vercel). Recording names are random and never reused (a new
      * recording gets a new name), so a cached copy never goes stale.
      */
     private function localCopy(Filesystem $disk, string $path): string
@@ -86,7 +86,7 @@ class TileAudioController extends Controller
             return $disk->path($path);
         }
 
-        $copy = storage_path('framework/cache/aac-audio/'.sha1($path).'.'.pathinfo($path, PATHINFO_EXTENSION));
+        $copy = rtrim(config('pesu.audio_cache_path'), '/\\').'/'.sha1($path).'.'.pathinfo($path, PATHINFO_EXTENSION);
         if (! is_file($copy)) {
             File::ensureDirectoryExists(dirname($copy));
             $contents = $disk->get($path);
