@@ -1,0 +1,7 @@
+/* Pesu's shared tokens (fonts, colours, spacing, dark mode) and UI layer for every page except the board. */
+@import "./pesu-tokens.css";
+@import "./pesu-ui.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -1,0 +1,272 @@
+/* Pesu AAC board styles. Loaded by resources/views/aac/board.blade.php via Vite. */
+
+/* Fonts, colours, type scale, spacing, corners, motion and dark mode: shared with every Pesu page. */
+@import "./pesu-tokens.css";
+
+/* Board-only settings */
+:root{
+  /* Set from JS (renderChrome) */
+  --cols:5; --pic:38px; --lbl:1.0625rem;
+
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:env(safe-area-inset-left,0px);
+  padding-right:env(safe-area-inset-right,0px);
+}
+
+/* ---------- Base ---------- */
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Mukta Malar","Noto Sans Tamil","Latha","Nirmala UI",system-ui,sans-serif;font-size:var(--fs-md);line-height:1.5}
+body:lang(ta){line-height:1.6} /* room for Tamil vowel signs above and below */
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+img{max-width:100%}
+.ic{width:var(--ic);height:var(--ic);flex:0 0 auto;fill:currentColor}
+
+.app{height:100%;height:100dvh;max-width:1240px;margin:0 auto;padding:10px var(--sp-3) 0;
+  display:grid;grid-template-rows:auto auto auto 1fr;gap:10px;min-height:0}
+
+/* ---------- Header ---------- */
+.top{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:var(--sp-2);margin-right:auto}
+.brand b{font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.01em;line-height:1.1}
+.brand span{font-size:var(--fs-lg);color:var(--ink-muted);font-weight:600}
+.seg{display:inline-flex;background:var(--surface);border:2px solid var(--line);border-radius:var(--r-full);padding:3px}
+.seg button{border:0;background:transparent;min-height:44px;padding:6px var(--sp-4);border-radius:var(--r-full);font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.iconbtn{border:2px solid var(--line);background:var(--surface);border-radius:var(--r-md);min-height:48px;min-width:48px;
+  justify-content:center;padding:6px var(--sp-3);font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.iconbtn[aria-pressed="true"]{border-color:var(--kind-verb);background:color-mix(in srgb,var(--kind-verb) var(--tint),var(--surface))}
+a.iconbtn{text-decoration:none;color:inherit}
+
+/* ---------- Message bar ---------- */
+.msgbar{position:relative;display:grid;grid-template-columns:1fr auto;gap:var(--sp-2);background:var(--surface);
+  border:2px solid var(--line);border-radius:var(--r-lg);padding:var(--sp-2)}
+.msgbar.speaking{border-color:var(--primary)}
+/* "Speaking…" badge: speech is shown by more than the border colour. Hidden from screen readers (the audio is the feedback). */
+.speaking-ind{position:absolute;top:-13px;left:var(--sp-4);display:none;align-items:center;gap:var(--sp-1);
+  padding:0 10px;border-radius:var(--r-full);background:var(--primary);color:var(--on-primary);
+  font-size:var(--fs-sm);font-weight:800;line-height:24px;--ic:16px}
+.msgbar.speaking .speaking-ind{display:inline-flex}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;align-content:flex-start;min-height:60px;padding:2px;
+  max-height:96px;overflow-y:auto;overscroll-behavior:contain} /* ~2 rows of chips */
+.empty{color:var(--ink-muted);padding:0 6px}
+.chip{--c:var(--kind-noun);display:inline-flex;align-items:center;gap:6px;border:2px solid var(--c);
+  background:color-mix(in srgb,var(--c) var(--tint),var(--surface));border-radius:var(--r-md);padding:var(--sp-1) 10px var(--sp-1) 6px;
+  font-weight:600;font-size:var(--fs-lg);line-height:1.25}
+.chip :lang(ta){line-height:1.35}
+.chip .pic{font-size:24px}
+.chip img.pic{width:28px;height:28px;border-radius:6px;object-fit:cover}
+.slot{display:inline-block;min-width:40px;height:22px;border:2px dashed var(--c);border-radius:6px;vertical-align:middle}
+@keyframes pulse{50%{opacity:.35}}
+.actions{display:flex;gap:6px;align-items:stretch}
+.actions button{border:2px solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:6px var(--sp-3);font-weight:600;min-width:56px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.actions .speak{background:var(--primary);color:var(--on-primary);border-color:var(--primary);font-size:var(--fs-xl);font-weight:800;padding:6px 22px}
+@media (max-width:560px){
+  .msgbar{grid-template-columns:1fr}
+  .actions .speak{flex:1}
+}
+
+/* ---------- Tabs ---------- */
+.tabs{display:flex;gap:var(--sp-2);overflow-x:auto;padding-bottom:var(--sp-2);scroll-padding-inline:var(--sp-6)}
+.tabs button{position:relative;flex:0 0 auto;border:2px solid var(--line);background:var(--surface);border-radius:var(--r-md);min-height:48px;
+  padding:6px 14px;font-weight:600;display:inline-flex;gap:6px;align-items:center}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* Selected bar under the tab, so selection isn't shown by colour alone */
+.tabs button[aria-selected="true"]::after{content:"";position:absolute;left:var(--sp-2);right:var(--sp-2);bottom:-7px;height:3px;border-radius:2px;background:var(--ink)}
+/* My words and Type are tools, not categories: set them apart */
+.tabs [data-slug="mine"]{margin-left:var(--sp-3)}
+.tabs [data-slug="mine"]::before{content:"";position:absolute;left:-13px;top:10px;bottom:10px;width:2px;border-radius:1px;background:var(--line)}
+/* Phones: fade the edge that has more tabs past it (classes set by renderTabs) */
+@media (max-width:767px), (orientation:landscape) and (max-height:600px){
+  .tabs.more-end{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - var(--sp-6)),transparent);mask-image:linear-gradient(to right,#000 calc(100% - var(--sp-6)),transparent)}
+  .tabs.more-start{-webkit-mask-image:linear-gradient(to right,transparent,#000 var(--sp-6));mask-image:linear-gradient(to right,transparent,#000 var(--sp-6))}
+  .tabs.more-start.more-end{-webkit-mask-image:linear-gradient(to right,transparent,#000 var(--sp-6),#000 calc(100% - var(--sp-6)),transparent);
+    mask-image:linear-gradient(to right,transparent,#000 var(--sp-6),#000 calc(100% - var(--sp-6)),transparent)}
+}
+/* Tablets: wrap instead of hiding tabs off-screen; scroll only beyond two rows */
+@media (min-width:768px){
+  .tabs{flex-wrap:wrap;row-gap:var(--sp-3);overflow-x:visible;overflow-y:auto;max-height:calc(2 * 48px + var(--sp-3) + var(--sp-2) + 4px)}
+  .tabs [data-slug="mine"]{margin-left:auto}
+  .tabs [data-slug="mine"]::before{display:none}
+}
+
+/* ---------- Board and tiles ---------- */
+.board{overflow-y:auto;min-height:0;padding-bottom:var(--sp-4)}
+.grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:var(--sp-2)}
+.tile{--c:var(--kind-noun);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  min-height:104px;padding:var(--sp-2) 6px;border-radius:var(--r-lg);border:3px solid var(--c);
+  background:color-mix(in srgb,var(--c) var(--tint),var(--surface));text-align:center;overflow-wrap:anywhere}
+.tile .pic{font-size:var(--pic);line-height:1.1}
+.tile img.pic{width:calc(var(--pic) * 1.5);height:calc(var(--pic) * 1.5);object-fit:cover;border-radius:var(--r-sm)}
+.tile .w{font-weight:600;font-size:var(--lbl);line-height:1.25}
+.tile .w2{font-size:max(.8125rem,calc(var(--lbl) * .78));color:var(--ink-muted);line-height:1.25}
+.tile :lang(ta){line-height:1.35}
+/* A removable tile is wrapped so its × is a real sibling button, not nested inside the tile. */
+.tilewrap{position:relative;display:grid}
+.tilewrap>.tile{height:100%}
+.tilewrap .x{position:absolute;top:6px;right:6px;width:36px;height:36px;padding:0;border-radius:50%;border:2px solid var(--surface);
+  background:var(--danger);color:var(--on-danger);font-size:20px;font-weight:800;line-height:1;display:grid;place-items:center}
+.tilewrap .x::before{content:"";position:absolute;inset:-6px;border-radius:50%} /* 48px hit area */
+.addtile{border-style:dashed;--c:var(--ink-muted);background:transparent;font-weight:600}
+/* Subcategory tiles (Food & drink → Fruits): a second card edge behind them and a › mark so they read as "opens more". */
+.tile.folder{box-shadow:5px 5px 0 -2px var(--surface),5px 5px 0 0 var(--c);margin:0 5px 5px 0}
+.tile.folder::after{content:"›";position:absolute;top:2px;right:8px;font-size:1.5rem;font-weight:800;line-height:1;color:var(--c)}
+.subnav{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2) var(--sp-3);margin-bottom:10px}
+.subhead{font-size:var(--fs-lg);margin:var(--sp-3) 0 var(--sp-2)}
+.subnav .subhead{margin:0}
+
+.k-person{--c:var(--kind-person)} .k-verb{--c:var(--kind-verb)} .k-noun{--c:var(--kind-noun)} .k-place{--c:var(--kind-place)}
+.k-adj{--c:var(--kind-adj)} .k-feel{--c:var(--kind-feel)} .k-phrase{--c:var(--kind-phrase)} .k-social{--c:var(--kind-social)}
+.k-neg{--c:var(--kind-neg)} .k-frame{--c:var(--kind-frame)}
+
+/* ---------- Buttons ---------- */
+.row{display:flex;gap:var(--sp-2);flex-wrap:wrap}
+.btn{border:2px solid var(--line);background:var(--surface);border-radius:var(--r-md);min-height:48px;padding:var(--sp-2) var(--sp-4);font-weight:600;
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2)}
+.btn.big{min-height:48px;padding:10px 18px}
+.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.btn.danger{border-color:var(--danger);color:var(--danger-ink)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.edittools{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:10px}
+
+/* ---------- Press feedback ----------
+   A stronger tint the moment something is pressed. Colour, not motion, so it also shows with reduced motion. */
+.tile,.chip,.btn,.iconbtn,.seg button,.tabs button,.actions button,.dlg-head .close,.toast button{
+  transition:background-color var(--dur-press) var(--ease-out),transform var(--dur-press) var(--ease-out)}
+.tile:active,.chip:active{background:color-mix(in srgb,var(--c) var(--tint-press),var(--surface))}
+.addtile:active{background:color-mix(in srgb,var(--ink) 10%,transparent)}
+.btn:active,.iconbtn:active,.seg button:active,.tabs button:active,.actions button:active,.dlg-head .close:active{
+  background:color-mix(in srgb,var(--ink) 12%,var(--surface))}
+.btn.primary:active,.actions .speak:active{background:color-mix(in srgb,var(--primary) 80%,var(--ink))}
+.tabs button[aria-selected="true"]:active,.seg button[aria-pressed="true"]:active{background:color-mix(in srgb,var(--ink) 85%,var(--bg))}
+.tilewrap .x:active{background:color-mix(in srgb,var(--danger) 80%,var(--ink))}
+/* Speak with nothing to say: unavailable, no press state (after :active so it wins) */
+.actions .speak[aria-disabled="true"],.actions .speak[aria-disabled="true"]:active{
+  background:var(--surface);color:var(--ink-muted);border-color:var(--line);border-style:dashed;cursor:not-allowed}
+
+/* ---------- Keyboard panel ---------- */
+.kbd{display:grid;gap:10px}
+.kbd textarea{width:100%;min-height:120px;border:2px solid var(--line-strong);border-radius:var(--r-lg);background:var(--surface);padding:var(--sp-3);font-size:var(--fs-xl);resize:vertical}
+.kbd h2{font-size:var(--fs-lg);margin:var(--sp-2) 0 0}
+.hint{color:var(--ink-muted);margin:0}
+
+.notice{background:color-mix(in srgb,var(--kind-person) 22%,var(--surface));border:2px solid var(--kind-person);border-radius:var(--r-md);
+  padding:var(--sp-2) var(--sp-3);display:flex;gap:10px;align-items:flex-start}
+.notice p{margin:0;flex:1}
+.notice button{border:0;background:transparent;font-weight:800;font-size:22px;min-width:44px;min-height:44px;margin:-8px -8px -8px 0;border-radius:10px}
+
+/* ---------- Dialogs ---------- */
+dialog{border:2px solid var(--dialog-edge);border-radius:var(--r-xl);background:var(--surface);color:var(--ink);padding:0;
+  width:min(520px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;box-shadow:var(--shadow-2)}
+dialog::backdrop{background:var(--scrim)}
+.dlg{padding:18px;display:grid;gap:var(--sp-3)}
+.dlg h2{margin:0;font-size:var(--fs-xl);font-weight:600;line-height:1.3}
+.dlg-head{display:flex;align-items:center;gap:var(--sp-3)}
+.dlg-head h2{flex:1}
+.dlg-head .close{flex:0 0 auto;min-width:48px;min-height:48px;padding:0;border:2px solid var(--line);background:var(--surface);border-radius:var(--r-md);
+  display:inline-grid;place-items:center}
+#cfmDlg{width:min(440px,calc(100% - 24px))}
+.cfm{margin:0;font-size:var(--fs-xl);font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.cfm-row{justify-content:space-between}
+.field{display:grid;gap:var(--sp-1)}
+.field label{font-weight:600}
+.field input[type=text],.field select{border:2px solid var(--line-strong);border-radius:10px;background:var(--surface-sunken);min-height:48px;padding:var(--sp-2) 10px;width:100%}
+.field input[type=file]{min-height:44px}
+.field small{color:var(--ink-muted)}
+.check{display:flex;gap:10px;align-items:center;font-weight:600;min-height:48px}
+.check input{width:22px;height:22px;flex:0 0 auto}
+.status{font-size:var(--fs-sm);color:var(--ink-muted)}
+.status.warn{color:var(--danger-ink)}
+
+/* Settings sections */
+.group{border:2px solid var(--line);border-radius:var(--r-lg);margin:0;padding:var(--sp-2) var(--sp-3) var(--sp-3);display:grid;gap:var(--sp-2);min-width:0}
+.group legend{font-weight:800;font-size:var(--fs-sm);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-muted);padding:0 var(--sp-1)}
+.rate-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-2)}
+.rate-head output{font-weight:800;font-variant-numeric:tabular-nums}
+.field input[type=range]{width:100%;min-height:44px;accent-color:var(--primary)}
+
+/* Word dialog: recorded voice */
+.voice{border:2px solid var(--line);border-radius:var(--r-lg);padding:10px var(--sp-3) var(--sp-3);margin:0;display:grid;gap:var(--sp-2);min-width:0}
+.voice legend{font-weight:600;padding:0 var(--sp-1)}
+.voice .opt{font-weight:400;color:var(--ink-muted)}
+.voice .status{margin:0;font-size:.9375rem}
+.voice .status:empty{display:none}
+.vtimer{margin:0;display:flex;align-items:center;gap:var(--sp-2);font-weight:800;font-size:var(--fs-xl);font-variant-numeric:tabular-nums}
+.vtimer .dot{width:14px;height:14px;border-radius:50%;background:var(--danger)}
+@media (max-width:560px){
+  .dlg .row .btn.big{flex:1 1 auto}
+}
+
+/* ---------- Toast ---------- */
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:10px var(--sp-4);border-radius:var(--r-md);font-weight:600;max-width:calc(100% - 32px);z-index:10;
+  display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-1)}
+.toast button{min-height:44px;padding:6px var(--sp-4);border:2px solid currentColor;border-radius:10px;background:transparent;color:inherit;font-weight:800;flex:0 0 auto}
+.toast button:active{background:color-mix(in srgb,var(--bg) 18%,transparent)}
+.toast :focus-visible{outline-color:var(--bg)}
+
+/* ---------- Utilities ---------- */
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Responsive ---------- */
+/* Phones: header buttons show icons only; their text stays as the accessible name. */
+@media (max-width:560px){
+  .iconbtn .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
+@media (min-width:1024px){
+  .app{padding-left:var(--sp-5);padding-right:var(--sp-5)}
+}
+/* Short landscape screens (phones, small tablets): give the board the height. */
+@media (orientation:landscape) and (max-height:600px){
+  .app{gap:6px;padding-top:6px}
+  .top{flex-wrap:nowrap}
+  .brand span{display:none}
+  .iconbtn .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .msgbar{padding:var(--sp-1) var(--sp-2)}
+  .chips{min-height:48px;max-height:52px}
+  /* One scrolling row of tabs (even when wide enough for the tablet wrap): height goes to the board */
+  .tabs{flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;max-height:none}
+  .tabs [data-slug="mine"]{margin-left:var(--sp-3)}
+  .tabs [data-slug="mine"]::before{display:block}
+}
+
+/* ---------- Motion ----------
+   Only when the user hasn't asked for reduced motion. Tiles, the grid and tab switches are never animated:
+   AAC users find words by position. Nothing here is needed for correctness (no animationend logic). */
+@media (prefers-reduced-motion:no-preference){
+  .slot{animation:pulse 1.2s ease-in-out infinite}
+  .vtimer .dot{animation:pulse 1s ease-in-out infinite}
+  .tile:active,.chip:active{transform:scale(.97)}
+  .btn:active,.iconbtn:active,.actions button:active{transform:scale(.97)}
+
+  /* Newest chip only (renderMsg marks it) */
+  .chip.is-new{animation:chip-in var(--dur-fast) var(--ease-out)}
+  @keyframes chip-in{from{opacity:0;transform:scale(.9)}}
+
+  /* Speaking: a gentle ring on the message bar */
+  .msgbar.speaking{animation:speak-ring 1.4s ease-in-out infinite}
+  @keyframes speak-ring{50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 35%,transparent)}}
+
+  /* Dialogs: in 180ms, out 120ms. Browsers without @starting-style / allow-discrete just open and close. */
+  dialog{transition:opacity var(--dur-out) var(--ease-in),transform var(--dur-out) var(--ease-in),
+    overlay var(--dur-out) allow-discrete,display var(--dur-out) allow-discrete}
+  dialog:not([open]){opacity:0;transform:scale(.96)}
+  dialog[open]{transition-duration:var(--dur-in);transition-timing-function:var(--ease-out)}
+  @starting-style{ dialog[open]{opacity:0;transform:scale(.96)} }
+  dialog::backdrop{transition:opacity var(--dur-out) var(--ease-in),overlay var(--dur-out) allow-discrete,display var(--dur-out) allow-discrete}
+  dialog:not([open])::backdrop{opacity:0}
+  @starting-style{ dialog[open]::backdrop{opacity:0} }
+  /* The confirm box appears instantly */
+  #cfmDlg,#cfmDlg::backdrop{transition:none}
+
+  /* Toast slides up a little */
+  .toast:not([hidden]){animation:toast-in var(--dur-fast) var(--ease-out)}
+  @keyframes toast-in{from{opacity:0;transform:translate(-50%,8px)}}
+}

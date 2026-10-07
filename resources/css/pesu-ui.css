@@ -1,0 +1,184 @@
+/* Pesu UI for every page except the AAC board: login, register, account status, activity, profile and the
+   therapist pages. Imported by app.css (Tailwind 3). The board keeps its own aac.css; both share pesu-tokens.css.
+
+   Classes are prefixed "pesu-" so they never collide with the board's classes (the recordings page loads both).
+   Component classes sit in @layer components so they come after Tailwind's base and forms-plugin styles. Tailwind
+   keeps a component class only if a Blade file uses it, so never build these class names dynamically. */
+
+/* ---------- Not layered (always kept) ---------- */
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* Therapist recordings page: rows are built by resources/js/aac/recordings.js, which Tailwind can't see,
+   so these rules stay outside @layer. (.group, .btn and .hint come from aac.css on that page.) */
+.recpage{display:grid;gap:var(--sp-3)}
+.recpage .group h2{margin:0;font-size:var(--fs-lg);font-weight:600}
+.recrow{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2) var(--sp-3);padding:var(--sp-2) 0;border-top:1px solid var(--line)}
+.recrow:first-of-type{border-top:0}
+.recrow .word{flex:1;min-width:12rem}
+.recrow .word .pic{margin-right:var(--sp-2)}
+.recrow .word span[lang="ta"]{color:var(--ink-muted);margin-left:var(--sp-2)}
+.recrow .state{font-weight:600}
+.recrow .state.missing{color:var(--danger-ink)}
+
+@layer components {
+  /* ---------- Page ---------- */
+  .pesu-body{margin:0;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--ink);
+    font-family:"Mukta Malar","Noto Sans Tamil","Latha","Nirmala UI",system-ui,sans-serif;font-size:var(--fs-md);line-height:1.5;
+    padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+  .pesu-body :lang(ta){line-height:1.6} /* room for Tamil vowel signs above and below */
+  .pesu-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .pesu-skip{position:absolute;left:var(--sp-3);top:-100px;z-index:20;background:var(--primary);color:var(--on-primary);
+    padding:var(--sp-2) var(--sp-4);border-radius:var(--r-md);font-weight:600}
+  .pesu-skip:focus{top:var(--sp-3)}
+  .ic{width:var(--ic);height:var(--ic);flex:0 0 auto;fill:currentColor}
+
+  .pesu-page{max-width:960px;margin:0 auto;padding:var(--sp-5) var(--sp-4) var(--sp-6);display:grid;gap:var(--sp-4)}
+
+  /* ---------- Brand ---------- */
+  .pesu-brand{display:inline-flex;align-items:baseline;gap:var(--sp-2);color:var(--ink);text-decoration:none}
+  .pesu-brand b{font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.01em;line-height:1.1}
+  .pesu-brand span{font-size:var(--fs-lg);color:var(--ink-muted);font-weight:600}
+
+  /* ---------- Top navigation (same shape as the board's header) ---------- */
+  .pesu-nav{background:var(--bg);border-bottom:2px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+  .pesu-nav-inner{max-width:1240px;margin:0 auto;padding:10px var(--sp-3);display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap}
+  .pesu-nav-inner>.pesu-brand{margin-right:auto;min-height:48px;align-items:center}
+  .pesu-nav-links{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2);margin:0}
+  .pesu-nav-links form{margin:0}
+  .pesu-navbtn{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r-md);min-height:48px;min-width:48px;
+    padding:6px var(--sp-3);font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;cursor:pointer}
+  .pesu-navbtn[aria-current="page"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .pesu-navbtn .emoji{font-size:1.125rem;line-height:1}
+
+  /* ---------- Page header ---------- */
+  .pesu-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--sp-3)}
+  .pesu-title{margin:0;font-size:var(--fs-2xl);font-weight:800;line-height:1.2;letter-spacing:-.01em}
+  .pesu-subtitle{margin:var(--sp-1) 0 0;color:var(--ink-muted);max-width:44rem}
+  .pesu-header-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+
+  /* ---------- Cards and sections ---------- */
+  .pesu-card{background:var(--surface);border:2px solid var(--line);border-radius:var(--r-lg);padding:var(--sp-4);display:grid;gap:var(--sp-3);min-width:0}
+  .pesu-card-title{margin:0;font-size:var(--fs-xl);font-weight:600;line-height:1.3}
+  .pesu-card-title .count{color:var(--ink-muted);font-weight:600}
+  .pesu-hint{margin:0;color:var(--ink-muted)}
+  .pesu-meta{margin:0;color:var(--ink-muted);font-size:var(--fs-sm)}
+  .pesu-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-3)}
+  .pesu-stat{background:var(--surface);border:2px solid var(--line);border-radius:var(--r-lg);padding:var(--sp-4)}
+  .pesu-stat-num{margin:0;font-size:2.25rem;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+  .pesu-stat-label{margin:0;color:var(--ink-muted)}
+
+  /* ---------- Lists ---------- */
+  .pesu-list{list-style:none;margin:0;padding:0}
+  .pesu-list-item{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--sp-1) var(--sp-4);
+    padding:var(--sp-3) 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
+  .pesu-list-item:first-child{border-top:0;padding-top:0}
+  .pesu-list-item:last-child{padding-bottom:0}
+  .pesu-list-text{flex:1 1 16rem;font-size:var(--fs-lg)}
+  .pesu-list-count{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pesu-list-time{color:var(--ink-muted);font-size:var(--fs-sm);white-space:nowrap}
+
+  /* People (therapist approvals): a stacked card on phones, one row from tablets up */
+  .pesu-person{display:grid;gap:var(--sp-3);padding:var(--sp-3) 0;border-top:1px solid var(--line)}
+  .pesu-person:first-child{border-top:0;padding-top:0}
+  .pesu-person:last-child{padding-bottom:0}
+  .pesu-person-name{margin:0;font-weight:600;font-size:var(--fs-lg);display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2)}
+  .pesu-person-email{margin:0;overflow-wrap:anywhere}
+  .pesu-person-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+  .pesu-person-actions form{margin:0}
+
+  /* Status badges: word + colour, never colour alone */
+  .pesu-badge{--c:var(--line-strong);display:inline-flex;align-items:center;gap:var(--sp-1);border:2px solid var(--c);border-radius:var(--r-full);
+    background:color-mix(in srgb,var(--c) var(--tint),var(--surface));color:var(--ink);font-size:var(--fs-sm);font-weight:600;padding:0 10px;line-height:1.6}
+  .pesu-badge-pending{--c:var(--kind-person)}
+  .pesu-badge-approved{--c:var(--kind-verb)}
+  .pesu-badge-rejected{--c:var(--danger)}
+
+  /* ---------- Buttons and links ---------- */
+  .pesu-btn{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r-md);min-height:48px;padding:var(--sp-2) var(--sp-4);
+    font-weight:600;font-size:var(--fs-md);line-height:1.3;display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);
+    text-decoration:none;cursor:pointer;text-align:center}
+  .pesu-btn-primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+  .pesu-btn-danger{border-color:var(--danger);color:var(--danger-ink)}
+  .pesu-btn:disabled{opacity:.55;cursor:not-allowed}
+  .pesu-btn[aria-current="page"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .pesu-link{color:var(--primary);font-weight:600;text-decoration:none;text-underline-offset:3px;border-radius:4px}
+  .pesu-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-3)}
+  .pesu-actions-end{justify-content:flex-end}
+
+  /* Press feedback, as on the board: a stronger tint, colour not motion */
+  .pesu-btn:active,.pesu-navbtn:active{background:color-mix(in srgb,var(--ink) 12%,var(--surface))}
+  .pesu-btn-primary:active{background:color-mix(in srgb,var(--primary) 80%,var(--ink))}
+  .pesu-navbtn[aria-current="page"]:active,.pesu-btn[aria-current="page"]:active{background:color-mix(in srgb,var(--ink) 85%,var(--bg))}
+  @media (hover:hover){
+    .pesu-btn:not(.pesu-btn-primary):not([aria-current="page"]):hover,.pesu-navbtn:not([aria-current="page"]):hover{border-color:var(--line-strong)}
+    .pesu-btn-primary:hover{background:color-mix(in srgb,var(--primary) 90%,var(--ink))}
+    .pesu-link:hover{text-decoration-thickness:2px}
+  }
+
+  /* ---------- Forms ---------- */
+  .pesu-form{display:grid;gap:var(--sp-4)}
+  .pesu-field{display:grid;gap:var(--sp-1)}
+  .pesu-label{font-weight:600;color:var(--ink)}
+  .pesu-input{display:block;width:100%;min-height:48px;border:2px solid var(--line-strong);border-radius:10px;background:var(--surface-sunken);
+    color:var(--ink);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-md);line-height:1.5;box-shadow:none}
+  .pesu-input:focus{border-color:var(--primary);box-shadow:none;outline:3px solid var(--focus);outline-offset:2px}
+  .pesu-check{display:inline-flex;gap:10px;align-items:center;font-weight:600;min-height:48px;cursor:pointer}
+  .pesu-check input{width:22px;height:22px;flex:0 0 auto;border:2px solid var(--line-strong);border-radius:6px;background-color:var(--surface);color:var(--primary)}
+  .pesu-check input:focus{box-shadow:none;outline:3px solid var(--focus);outline-offset:2px}
+  .pesu-error{list-style:none;margin:0;padding:0;color:var(--danger-ink);font-size:var(--fs-sm);font-weight:600}
+
+  /* ---------- Alerts and empty states ---------- */
+  .pesu-alert{--c:var(--primary);border:2px solid var(--c);border-radius:var(--r-md);background:color-mix(in srgb,var(--c) var(--tint),var(--surface));
+    color:var(--ink);padding:var(--sp-2) var(--sp-3);margin:0}
+  .pesu-alert-success{--c:var(--kind-verb)}
+  .pesu-alert-warn{--c:var(--kind-person)}
+  .pesu-alert-danger{--c:var(--danger)}
+  .pesu-empty{margin:0;color:var(--ink-muted);padding:var(--sp-4);border:2px dashed var(--line);border-radius:var(--r-md);text-align:center}
+
+  /* Filter links (recordings page): look like the board's tabs */
+  .pesu-seg{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+
+  /* ---------- Breeze's Alpine modal (profile: delete account) ---------- */
+  .pesu-scrim{background:var(--scrim)}
+  .pesu-modal{background:var(--surface);color:var(--ink);border:2px solid var(--dialog-edge);border-radius:var(--r-xl);box-shadow:var(--shadow-2)}
+  .pesu-modal-body{padding:18px;display:grid;gap:var(--sp-3)}
+
+  /* ---------- Login, register and account status ---------- */
+  .pesu-auth{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:var(--sp-4);padding:var(--sp-5) var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-bottom,0px))}
+  .pesu-auth-card{width:100%;max-width:28rem;padding:var(--sp-5);gap:var(--sp-4)}
+  .pesu-auth-title{margin:0;font-size:var(--fs-2xl);font-weight:800;line-height:1.2}
+  .pesu-auth-foot{margin:0;text-align:center;color:var(--ink-muted)}
+  /* Login and register: the main button centred, its secondary link right underneath */
+  .pesu-auth-actions{display:flex;flex-direction:column;align-items:center;gap:var(--sp-3);margin-top:var(--sp-1)}
+  .pesu-auth-actions .pesu-btn{min-width:12rem}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:560px){
+    /* Phones: navigation shows icons only (labels stay as the accessible name), actions fill the width */
+    .pesu-navbtn .pesu-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .pesu-page{padding:var(--sp-4) var(--sp-3) var(--sp-5)}
+    .pesu-auth-card{padding:var(--sp-4)}
+    .pesu-actions>.pesu-btn,.pesu-actions>form,.pesu-actions>form>.pesu-btn,.pesu-person-actions>form,.pesu-person-actions .pesu-btn{flex:1 1 auto}
+    .pesu-title{font-size:1.5rem}
+  }
+  @media (min-width:768px){
+    .pesu-person{grid-template-columns:1fr auto;align-items:center}
+  }
+  @media (min-width:1024px){
+    .pesu-nav-inner{padding-left:var(--sp-5);padding-right:var(--sp-5)}
+  }
+  /* Short landscape screens: a compact header, like the board */
+  @media (orientation:landscape) and (max-height:600px){
+    .pesu-nav-inner{padding-top:6px;padding-bottom:6px}
+    .pesu-nav-inner>.pesu-brand span{display:none}
+    .pesu-navbtn .pesu-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .pesu-auth{justify-content:flex-start}
+  }
+
+  /* ---------- Motion (only when the user hasn't asked for reduced motion) ---------- */
+  @media (prefers-reduced-motion:no-preference){
+    .pesu-btn,.pesu-navbtn{transition:background-color var(--dur-press) var(--ease-out),border-color var(--dur-press) var(--ease-out),transform var(--dur-press) var(--ease-out)}
+    .pesu-btn:active,.pesu-navbtn:active{transform:scale(.97)}
+  }
+}

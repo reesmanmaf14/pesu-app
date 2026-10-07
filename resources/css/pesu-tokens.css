@@ -1,0 +1,64 @@
+/* Pesu design tokens, shared by the AAC board (aac.css) and every other page (app.css → pesu-ui.css).
+   Only fonts and custom properties live here: no element or class rules, so it is safe on any page. */
+
+/* Mukta Malar, self-hosted (Tamil + Latin), so labels never depend on a font CDN. */
+@import "@fontsource/mukta-malar/400.css";
+@import "@fontsource/mukta-malar/600.css";
+@import "@fontsource/mukta-malar/800.css";
+
+/* ---------- Tokens ----------
+   Semantic roles first; components use these, never raw hex. Every text pair is checked to ≥4.5:1
+   (form-field borders ≥3:1) in light and both dark variants. */
+:root{
+  /* Surfaces and text */
+  --bg:#E8EDF2; --surface:#FFFFFF; --surface-sunken:#E8EDF2;
+  --ink:#15202B; --ink-muted:#596777;
+  --line:#C9D3DE; --line-strong:#7B8796; /* line: dividers; line-strong: form-field borders */
+  /* Actions and states */
+  --primary:#2E3C9C; --on-primary:#FFFFFF;
+  --danger:#D03C3C; --on-danger:#FFFFFF; --danger-ink:#B3261E;
+  --focus:var(--primary);
+  --scrim:rgba(10,15,20,.5); --dialog-edge:var(--line);
+  --tint:15%; --tint-press:35%;
+  /* Word kinds (modified Fitzgerald Key). Light values give ≥3:1 tile edges. */
+  --kind-person:#A67C00; --kind-verb:#2F9A45; --kind-noun:#C8680F; --kind-place:#8A4B1A;
+  --kind-adj:#3479BE; --kind-feel:#3479BE; --kind-phrase:#C8457F; --kind-social:#C8457F;
+  --kind-neg:#D03C3C; --kind-frame:#2F9A45;
+
+  /* Type scale (rem follows the user's text-size setting) */
+  --fs-sm:.875rem; --fs-md:1rem; --fs-lg:1.125rem; --fs-xl:1.375rem; --fs-2xl:1.75rem;
+  /* Spacing (4/8 rhythm) */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+  /* Corners */
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-full:999px;
+  /* Elevation (dialogs and toast only; everything else is flat with borders) */
+  --shadow-1:0 4px 12px rgba(10,15,20,.18);
+  --shadow-2:0 12px 32px rgba(10,15,20,.22);
+  /* Motion */
+  --dur-press:90ms; --dur-fast:150ms; --dur-in:180ms; --dur-out:120ms;
+  --ease-out:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.4,0,1,1);
+  /* Icons */
+  --ic:24px;
+
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1319; --surface:#19212B; --surface-sunken:#0E1319;
+    --ink:#E6ECF2; --ink-muted:#AEBBC8; --line:#2C3846; --line-strong:#6B7B8E;
+    --primary:#8191F2; --on-primary:#0E1319; --danger-ink:#FF8A80;
+    --scrim:rgba(0,0,0,.65); --dialog-edge:var(--line-strong); /* 4.7:1 vs the dimmed page */ --tint:26%; --tint-press:46%;
+    --kind-person:#E0A800; --kind-noun:#E07B1F; --kind-place:#B8621B;
+    --shadow-1:0 4px 12px rgba(0,0,0,.5); --shadow-2:0 12px 32px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1319; --surface:#19212B; --surface-sunken:#0E1319;
+  --ink:#E6ECF2; --ink-muted:#AEBBC8; --line:#2C3846; --line-strong:#6B7B8E;
+  --primary:#8191F2; --on-primary:#0E1319; --danger-ink:#FF8A80;
+  --scrim:rgba(0,0,0,.65); --dialog-edge:var(--line-strong); /* 4.7:1 vs the dimmed page */ --tint:26%; --tint-press:46%;
+  --kind-person:#E0A800; --kind-noun:#E07B1F; --kind-place:#B8621B;
+  --shadow-1:0 4px 12px rgba(0,0,0,.5); --shadow-2:0 12px 32px rgba(0,0,0,.6);
+}

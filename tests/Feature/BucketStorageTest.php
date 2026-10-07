@@ -1,0 +1,119 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Category;
+use App\Models\Tile;
+use App\Models\User;
+use Database\Seeders\AacVocabularySeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+/** Recordings and photos on bucket disks, as on Laravel Cloud (config/pesu.php). */
+class BucketStorageTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected $seed = true;
+
+    protected $seeder = AacVocabularySeeder::class;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // What Laravel Cloud does for attached buckets: s3 disks under the names chosen in the dashboard.
+        foreach (['aac-recordings', 'aac-photos'] as $name) {
+            config(["filesystems.disks.$name" => ['driver' => 's3', 'key' => 'k', 'secret' => 's', 'region' => 'auto', 'bucket' => $name]]);
+        }
+        config(['pesu.audio_disk' => 'aac-recordings', 'pesu.photo_disk' => 'aac-photos']);
+
+        Storage::fake('aac-recordings');
+        Storage::fake('aac-photos');
+        Storage::fake('local');
+        Storage::fake('public');
+        Storage::disk('aac-recordings')->buildTemporaryUrlsUsing(
+            fn (string $path, $expiration) => "https://bucket.example/{$path}?expires={$expiration->timestamp}"
+        );
+    }
+
+    private function voice(): UploadedFile
+    {
+        return UploadedFile::fake()->create('voice.webm', 20, 'audio/webm');
+    }
+
+    public function test_recordings_are_stored_on_the_recordings_bucket_not_the_local_disk(): void
+    {
+        $therapist = User::factory()->therapist()->create();
+        $tile = Tile::whereNull('user_id')->first();
+
+        $this->actingAs($therapist)->post("/aac/tiles/{$tile->id}/audio", ['ta_audio' => $this->voice()], ['Accept' => 'application/json'])->assertOk();
+
+        $path = $tile->fresh()->ta_audio_path;
+        Storage::disk('aac-recordings')->assertExists($path);
+        $this->assertEmpty(Storage::disk('local')->allFiles());
+    }
+
+    public function test_playback_checks_permission_then_redirects_to_a_short_lived_link(): void
+    {
+        $therapist = User::factory()->therapist()->create();
+        $tile = Tile::whereNull('user_id')->first();
+        $this->actingAs($therapist)->post("/aac/tiles/{$tile->id}/audio", ['ta_audio' => $this->voice()], ['Accept' => 'application/json'])->assertOk();
+        $path = $tile->fresh()->ta_audio_path;
+
+        $response = $this->actingAs(User::factory()->create())->get("/aac/tiles/{$tile->id}/audio");
+        $response->assertRedirect();
+        $this->assertStringStartsWith("https://bucket.example/{$path}?expires=", $response->headers->get('Location'));
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+
+        // Still refused before any link is made.
+        $this->actingAs(User::factory()->pending()->create())->get("/aac/tiles/{$tile->id}/audio")->assertRedirect('/account/status');
+    }
+
+    public function test_a_parents_own_recording_stays_private_on_the_bucket(): void
+    {
+        $parent = User::factory()->create();
+        $id = $this->actingAs($parent)->post('/aac/tiles', [
+            'category_id' => Category::where('slug', 'food')->value('id'),
+            'label_en' => 'water',
+            'ta_audio' => $this->voice(),
+        ], ['Accept' => 'application/json'])->assertCreated()->json('tile.id');
+
+        Storage::disk('aac-recordings')->assertExists(Tile::find($id)->ta_audio_path);
+        $this->actingAs(User::factory()->create())->get("/aac/tiles/{$id}/audio")->assertForbidden();
+        $this->actingAs($parent)->get("/aac/tiles/{$id}/audio")->assertRedirect();
+    }
+
+    public function test_photos_are_stored_on_the_photo_bucket(): void
+    {
+        $parent = User::factory()->create();
+        $response = $this->actingAs($parent)->post('/aac/tiles', [
+            'category_id' => Category::where('slug', 'food')->value('id'),
+            'label_en' => 'dosa',
+            'photo' => UploadedFile::fake()->image('dosa.jpg'),
+        ], ['Accept' => 'application/json'])->assertCreated();
+
+        $tile = Tile::find($response->json('tile.id'));
+        Storage::disk('aac-photos')->assertExists($tile->image_path);
+        $this->assertEmpty(Storage::disk('public')->allFiles());
+    }
+
+    public function test_deleting_a_word_removes_its_files_from_the_buckets(): void
+    {
+        $parent = User::factory()->create();
+        $id = $this->actingAs($parent)->post('/aac/tiles', [
+            'category_id' => Category::where('slug', 'food')->value('id'),
+            'label_en' => 'dosa',
+            'photo' => UploadedFile::fake()->image('dosa.jpg'),
+            'ta_audio' => $this->voice(),
+        ], ['Accept' => 'application/json'])->assertCreated()->json('tile.id');
+        $tile = Tile::find($id);
+
+        $this->actingAs($parent)->deleteJson("/aac/tiles/{$id}")->assertNoContent();
+
+        Storage::disk('aac-photos')->assertMissing($tile->image_path);
+        Storage::disk('aac-recordings')->assertMissing($tile->ta_audio_path);
+    }
+}
