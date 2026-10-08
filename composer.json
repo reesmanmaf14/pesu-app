@@ -51,6 +51,7 @@
             "@php artisan test"
         ],
         "vercel": [
+            "Composer\\Config::disableProcessTimeout",
             "@php artisan migrate --force",
             "@php artisan pesu:vocabulary --if-empty"
         ],
