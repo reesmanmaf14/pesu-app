@@ -174,7 +174,35 @@ version stays live. (The `Dockerfile` and `docker/` are an alternative for conta
 
 Free plans: Vercel's Hobby plan is for non-commercial use and the first request after a quiet period is
 slower; a Supabase project pauses after about a week without use (resume it from the dashboard). PHP on
-Vercel depends on the community runtime. Keep backups.
+Vercel depends on the community runtime. Keep backups (see below).
+
+## Backups
+
+Supabase's free plan has no downloadable backups, so a weekly script copies everything to a computer.
+It only reads from Supabase. The script (`backup.ps1`) is kept outside this repo, next to its tools and
+backups, and reads the credentials from the same private env file used for Vercel.
+
+1. **Tools** (portable, nothing installed): `pg_dump`/`pg_restore` from the PostgreSQL Windows binaries
+   zip (same major version as the Supabase database, 17 at the time of writing) and `rclone.exe`.
+2. **Each run** of `backup.ps1`:
+   - dumps the `public` schema with `pg_dump --format custom --no-owner --no-privileges` to
+     `db\pesu-<date>.dump`, checks it with `pg_restore --list`, and keeps the newest 8 dumps;
+   - copies the `aac-recordings` and `aac-photos` buckets through Supabase's S3 endpoint with
+     `rclone copy` (not `sync`, so a file deleted in Supabase is kept in the backup);
+   - writes a line per step to `logs\backup.log`.
+   The database password goes in `PGPASSWORD` and the S3 keys in `RCLONE_CONFIG_*` environment
+   variables, so no secret is written to a config file or shown on a command line.
+3. **Schedule:** Task Scheduler → Create Basic Task → Weekly, Sunday 8 pm → Start a program:
+   `powershell.exe` with arguments
+   `-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "<path>\backup.ps1"`. In the task's
+   Properties → Settings, tick "Run task as soon as possible after a scheduled start is missed".
+4. **Check it:** after a run, the log ends with `Backup finished OK`. Copy the backup folder to a USB
+   drive now and then.
+
+**Restoring** (not yet tested end to end): restore the database into an empty Supabase project with
+`pg_restore --no-owner --no-privileges --dbname "<session pooler URL>" db\pesu-<date>.dump`, then copy
+the files back with `rclone copy files\aac-recordings supa:aac-recordings` (and the same for
+`aac-photos`).
 
 ## Privacy
 
